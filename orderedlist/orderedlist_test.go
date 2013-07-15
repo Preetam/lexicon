@@ -13,8 +13,8 @@ func TestSetGet(t *testing.T) {
 	ol.Insert("b")
 	ol.Insert("aa")
 	ol.Insert("1")
-	ol.Insert("\x05")
-	ol.Remove("\x05")
+	ol.Insert("\xfa")
+	ol.Remove("\xfa")
 	ol.Print()
 }
 
