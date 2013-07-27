@@ -22,8 +22,9 @@ func TestGetRange(t *testing.T) {
 	lex.Set("a", "1")
 
 	kv := lex.GetRange("", "\xff")
-
-	for _, keyval := range kv {
-		fmt.Println(keyval)
+	if res := fmt.Sprint(kv); res != "[{a 1} {bar foo} {foo bar} {foobar baz}]" {
+		t.Errorf("Expected kv to be %v, got %v",
+			"[{a 1} {bar foo} {foo bar} {foobar baz}]",
+			res)
 	}
 }
