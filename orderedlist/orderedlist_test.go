@@ -15,7 +15,9 @@ func TestSetGet(t *testing.T) {
 	ol.Insert("1")
 	ol.Insert("\x05")
 	ol.Remove("\x05")
-	ol.Print()
+	if out := fmt.Sprint(ol.GetRange("", "\xff")); out != "[1 a aa b c]" {
+		t.Errorf("Expected `[1 a aa b c]`, got `%v`", out)
+	}
 }
 
 func TestGetRange(t *testing.T) {
@@ -28,7 +30,7 @@ func TestGetRange(t *testing.T) {
 	ol.Insert("1")
 	ol.Insert("\x05")
 	ol.Remove("\x05")
-	fmt.Println(ol.GetRange("1", "b"))
-	fmt.Println("-------")
-	fmt.Println(ol.GetRange("", "\xff"))
+	if out := fmt.Sprint(ol.GetRange("1", "b")); out != "[1 a aa]" {
+		t.Errorf("Expected `[1 a aa]`, got `%v`", out)
+	}
 }
