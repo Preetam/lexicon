@@ -28,3 +28,15 @@ func TestGetRange(t *testing.T) {
 			res)
 	}
 }
+
+func BenchmarkBasicSetRemove(b *testing.B) {
+	lex := New()
+
+	for i := 0; i < b.N; i++ {
+		lex.Set(string(i), "val")
+	}
+
+	for i := 0; i < b.N; i++ {
+		lex.Remove(string(i))
+	}
+}
