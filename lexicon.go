@@ -6,12 +6,12 @@ import (
 )
 
 type LexValue struct {
-	value string
+	value interface{}
 }
 
 type LexKeyValue struct {
 	Key   string
-	Value string
+	Value interface{}
 }
 
 type Lexicon struct {
@@ -28,14 +28,14 @@ func New() *Lexicon {
 	}
 }
 
-func (lex *Lexicon) Set(key string, value string) {
+func (lex *Lexicon) Set(key string, value interface{}) {
 	lex.mutex.Lock()
 	lex.hashmap[key] = &LexValue{value: value}
 	lex.list.Insert(key)
 	lex.mutex.Unlock()
 }
 
-func (lex *Lexicon) Get(key string) (value string) {
+func (lex *Lexicon) Get(key string) (value interface{}) {
 	lexvalue := lex.hashmap[key]
 	value = lexvalue.value
 	return
