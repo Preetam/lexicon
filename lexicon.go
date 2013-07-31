@@ -14,12 +14,14 @@ type LexKeyValue struct {
 	Value interface{}
 }
 
+// Lexicon is an ordered key-value store.
 type Lexicon struct {
 	list    *orderedlist.OrderedList
 	hashmap map[string]*LexValue
 	mutex   *sync.Mutex
 }
 
+// New returns an initialized lexicon.
 func New() *Lexicon {
 	return &Lexicon{
 		list:    orderedlist.New(),
@@ -28,6 +30,7 @@ func New() *Lexicon {
 	}
 }
 
+// Set sets a key to a value.
 func (lex *Lexicon) Set(key string, value interface{}) {
 	lex.mutex.Lock()
 	lex.hashmap[key] = &LexValue{value: value}
@@ -35,17 +38,21 @@ func (lex *Lexicon) Set(key string, value interface{}) {
 	lex.mutex.Unlock()
 }
 
+// Get returns a value at the given key.
 func (lex *Lexicon) Get(key string) (value interface{}) {
 	lexvalue := lex.hashmap[key]
 	value = lexvalue.value
 	return
 }
 
+// Remove deletes a key-value pair from the lexicon.
 func (lex *Lexicon) Remove(key string) {
 	delete(lex.hashmap, key)
 	lex.list.Remove(key)
 }
 
+// GetRange returns a slice of LexKeyValue structs.
+// The range is from [start, end).
 func (lex *Lexicon) GetRange(start string, end string) (kv []LexKeyValue) {
 	kv = make([]LexKeyValue, 0)
 	keys := lex.list.GetRange(start, end)
