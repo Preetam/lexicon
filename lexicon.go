@@ -1,7 +1,7 @@
 package lexicon
 
 import (
-	"github.com/PreetamJinka/lexicon/orderedlist"
+	"github.com/PreetamJinka/orderedlist"
 	"sync"
 )
 
