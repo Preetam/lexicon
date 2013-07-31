@@ -47,15 +47,20 @@ func (lex *Lexicon) Get(key string) (value interface{}) {
 
 // Remove deletes a key-value pair from the lexicon.
 func (lex *Lexicon) Remove(key string) {
+	lex.mutex.Lock()
 	delete(lex.hashmap, key)
 	lex.list.Remove(key)
+	lex.mutex.Unlock()
 }
 
 // GetRange returns a slice of LexKeyValue structs.
 // The range is from [start, end).
 func (lex *Lexicon) GetRange(start string, end string) (kv []LexKeyValue) {
 	kv = make([]LexKeyValue, 0)
+
+	lex.mutex.Lock()
 	keys := lex.list.GetRange(start, end)
+	lex.mutex.Unlock()
 
 	for _, key := range keys {
 		kv = append(kv, LexKeyValue{
