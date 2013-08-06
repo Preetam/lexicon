@@ -108,6 +108,8 @@ func readKVFromFile(fileName string) ([]LexKeyValue, error) {
 	return lex, err
 }
 
+// ReadFromFile returns a new Lexicon generated from
+// key-value pairs in fileName.
 func ReadFromFile(fileName string) (*Lexicon, error) {
 	kvSlice, err := readKVFromFile(fileName)
 	if err != nil {
