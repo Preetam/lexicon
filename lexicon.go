@@ -7,11 +7,7 @@ import (
 	"sync"
 )
 
-type LexValue struct {
-	value interface{}
-}
-
-type LexKeyValue struct {
+type KeyValue struct {
 	Key   string
 	Value interface{}
 }
@@ -19,7 +15,7 @@ type LexKeyValue struct {
 // Lexicon is an ordered key-value store.
 type Lexicon struct {
 	list    *orderedlist.OrderedList
-	hashmap map[string]*LexValue
+	hashmap map[string]*interface{}
 	mutex   *sync.Mutex
 }
 
@@ -27,7 +23,7 @@ type Lexicon struct {
 func New() *Lexicon {
 	return &Lexicon{
 		list:    orderedlist.New(),
-		hashmap: make(map[string]*LexValue),
+		hashmap: make(map[string]*interface{}),
 		mutex:   &sync.Mutex{},
 	}
 }
@@ -35,16 +31,14 @@ func New() *Lexicon {
 // Set sets a key to a value.
 func (lex *Lexicon) Set(key string, value interface{}) {
 	lex.mutex.Lock()
-	lex.hashmap[key] = &LexValue{value: value}
+	lex.hashmap[key] = &value
 	lex.list.Insert(key)
 	lex.mutex.Unlock()
 }
 
 // Get returns a value at the given key.
 func (lex *Lexicon) Get(key string) (value interface{}) {
-	lexvalue := lex.hashmap[key]
-	value = lexvalue.value
-	return
+	return *lex.hashmap[key]
 }
 
 // Remove deletes a key-value pair from the lexicon.
@@ -57,17 +51,17 @@ func (lex *Lexicon) Remove(key string) {
 
 // GetRange returns a slice of LexKeyValue structs.
 // The range is from [start, end).
-func (lex *Lexicon) GetRange(start string, end string) (kv []LexKeyValue) {
-	kv = make([]LexKeyValue, 0)
+func (lex *Lexicon) GetRange(start string, end string) (kv []KeyValue) {
+	kv = make([]KeyValue, 0)
 
 	lex.mutex.Lock()
 	keys := lex.list.GetRange(start, end)
 	lex.mutex.Unlock()
 
 	for _, key := range keys {
-		kv = append(kv, LexKeyValue{
+		kv = append(kv, KeyValue{
 			Key:   key,
-			Value: lex.hashmap[key].value,
+			Value: *lex.hashmap[key],
 		})
 	}
 	return
@@ -90,8 +84,8 @@ func (lex *Lexicon) WriteToFile(fileName string) error {
 	return encoder.Encode(lex.GetRange("", "\xff"))
 }
 
-func readKVFromFile(fileName string) ([]LexKeyValue, error) {
-	var lex []LexKeyValue
+func readKVFromFile(fileName string) ([]KeyValue, error) {
+	var lex []KeyValue
 	file, err := os.Open(fileName)
 	if err != nil {
 		return lex, err
