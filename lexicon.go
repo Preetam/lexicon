@@ -49,7 +49,7 @@ func (lex *Lexicon) Remove(key string) {
 	lex.mutex.Unlock()
 }
 
-// GetRange returns a slice of LexKeyValue structs.
+// GetRange returns a slice of KeyValue structs.
 // The range is from [start, end).
 func (lex *Lexicon) GetRange(start string, end string) (kv []KeyValue) {
 	kv = make([]KeyValue, 0)
@@ -67,7 +67,7 @@ func (lex *Lexicon) GetRange(start string, end string) (kv []KeyValue) {
 	return
 }
 
-// WriteToFile writes a LexKeyValue slice to fileName.
+// WriteToFile writes a KeyValue slice to fileName.
 func (lex *Lexicon) WriteToFile(fileName string) error {
 	file, err := os.Create(fileName)
 	if err != nil {
