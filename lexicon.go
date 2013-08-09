@@ -36,6 +36,16 @@ func (lex *Lexicon) Set(key string, value interface{}) {
 	lex.mutex.Unlock()
 }
 
+func (lex *Lexicon) SetMany(kv map[string]interface{}) {
+	lex.mutex.Lock()
+	for key := range kv {
+		lex.hashmap[key] = new(interface{})
+		*lex.hashmap[key] = kv[key]
+		lex.list.Insert(key)
+	}
+	lex.mutex.Unlock()
+}
+
 // Get returns a value at the given key.
 func (lex *Lexicon) Get(key string) (value interface{}) {
 	return *lex.hashmap[key]

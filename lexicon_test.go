@@ -29,6 +29,24 @@ func TestGetRange(t *testing.T) {
 	}
 }
 
+func TestSetMany(t *testing.T) {
+	lex := New()
+	pairs := map[string]interface{}{
+		"foo":    "bar",
+		"foobar": "baz",
+		"bar":    "foo",
+		"a":      "1",
+	}
+
+	lex.SetMany(pairs)
+	kv := lex.GetRange("", "\xff")
+	if res := fmt.Sprint(kv); res != "[{a 1} {bar foo} {foo bar} {foobar baz}]" {
+		t.Errorf("Expected kv to be %v, got %v",
+			"[{a 1} {bar foo} {foo bar} {foobar baz}]",
+			res)
+	}
+}
+
 func TestWriteRead(t *testing.T) {
 	lex := New()
 	lex.Set("foo", "bar")
