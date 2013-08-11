@@ -1,9 +1,7 @@
 package lexicon
 
 import (
-	"encoding/gob"
 	"github.com/PreetamJinka/orderedlist"
-	"os"
 	"sync"
 )
 
@@ -65,56 +63,4 @@ func (lex *Lexicon) GetRange(start string, end string) (kv []KeyValue) {
 		})
 	}
 	return
-}
-
-// WriteToFile writes a KeyValue slice to fileName.
-func (lex *Lexicon) WriteToFile(fileName string) error {
-	file, err := os.Create(fileName)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err := file.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	encoder := gob.NewEncoder(file)
-	return encoder.Encode(lex.GetRange("", "\xff"))
-}
-
-func readKVFromFile(fileName string) ([]KeyValue, error) {
-	var lex []KeyValue
-	file, err := os.Open(fileName)
-	if err != nil {
-		return lex, err
-	}
-
-	defer func() {
-		if err := file.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	decoder := gob.NewDecoder(file)
-	err = decoder.Decode(&lex)
-	return lex, err
-}
-
-// ReadFromFile returns a new Lexicon generated from
-// key-value pairs in fileName.
-func ReadFromFile(fileName string) (*Lexicon, error) {
-	kvSlice, err := readKVFromFile(fileName)
-	if err != nil {
-		return nil, err
-	}
-
-	lex := New()
-
-	for _, kv := range kvSlice {
-		lex.Set(kv.Key, kv.Value)
-	}
-
-	return lex, nil
 }
