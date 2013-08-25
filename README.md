@@ -4,7 +4,6 @@ A lexicographically ordered key-value store (in Go!). A *lexicon* is a synonym f
 ## Features
 * Fast key-value existence checks and retrieval
 * Range reads
-* Simple persistence
 
 ## API Documentation
 
