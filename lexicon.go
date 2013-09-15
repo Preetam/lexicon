@@ -1,19 +1,25 @@
 package lexicon
 
 import (
-	"github.com/PreetamJinka/orderedlist"
 	"sync"
+
+	"github.com/PreetamJinka/orderedlist"
 )
 
 type KeyValue struct {
 	Key   string
-	Value interface{}
+	Value LexValue
+}
+
+type LexValue struct {
+	Value   string
+	version string
 }
 
 // Lexicon is an ordered key-value store.
 type Lexicon struct {
 	list    *orderedlist.OrderedList
-	hashmap map[string]*interface{}
+	hashmap map[string]*LexValue
 	mutex   *sync.Mutex
 }
 
@@ -21,32 +27,39 @@ type Lexicon struct {
 func New() *Lexicon {
 	return &Lexicon{
 		list:    orderedlist.New(),
-		hashmap: make(map[string]*interface{}),
+		hashmap: make(map[string]*LexValue),
 		mutex:   &sync.Mutex{},
 	}
 }
 
 // Set sets a key to a value.
-func (lex *Lexicon) Set(key string, value interface{}) {
+func (lex *Lexicon) Set(key, value string) {
 	lex.mutex.Lock()
-	lex.hashmap[key] = &value
+	_, present := lex.hashmap[key]
+	if !present {
+		lex.hashmap[key] = &LexValue{Value: value}
+	}
 	lex.list.Insert(key)
 	lex.mutex.Unlock()
 }
 
-func (lex *Lexicon) SetMany(kv map[string]interface{}) {
+func (lex *Lexicon) SetMany(kv map[string]string) {
 	lex.mutex.Lock()
 	for key := range kv {
-		lex.hashmap[key] = new(interface{})
-		*lex.hashmap[key] = kv[key]
+		_, present := lex.hashmap[key]
+		if !present {
+			lex.hashmap[key] = &LexValue{Value: kv[key]}
+		} else {
+			lex.hashmap[key].Value = kv[key]
+		}
 		lex.list.Insert(key)
 	}
 	lex.mutex.Unlock()
 }
 
 // Get returns a value at the given key.
-func (lex *Lexicon) Get(key string) (value interface{}) {
-	return *lex.hashmap[key]
+func (lex *Lexicon) Get(key string) (value string, version string) {
+	return lex.hashmap[key].Value, lex.hashmap[key].version
 }
 
 // Remove deletes a key-value pair from the lexicon.
