@@ -9,7 +9,7 @@ func TestSetGet(t *testing.T) {
 	lex := New()
 	lex.Set("foo", "bar")
 
-	if val := lex.Get("foo"); val != "bar" {
+	if val, _ := lex.Get("foo"); val != "bar" {
 		t.Errorf(`Expected "foo", got %v.`, val)
 	}
 }
@@ -22,16 +22,16 @@ func TestGetRange(t *testing.T) {
 	lex.Set("a", "1")
 
 	kv := lex.GetRange("", "\xff")
-	if res := fmt.Sprint(kv); res != "[{a 1} {bar foo} {foo bar} {foobar baz}]" {
+	if res := fmt.Sprint(kv); res != "[{a {1 }} {bar {foo }} {foo {bar }} {foobar {baz }}]" {
 		t.Errorf("Expected kv to be %v, got %v",
-			"[{a 1} {bar foo} {foo bar} {foobar baz}]",
+			"[{a {1 }} {bar {foo }} {foo {bar }} {foobar {baz }}]",
 			res)
 	}
 }
 
 func TestSetMany(t *testing.T) {
 	lex := New()
-	pairs := map[string]interface{}{
+	pairs := map[string]string{
 		"foo":    "bar",
 		"foobar": "baz",
 		"bar":    "foo",
@@ -40,9 +40,9 @@ func TestSetMany(t *testing.T) {
 
 	lex.SetMany(pairs)
 	kv := lex.GetRange("", "\xff")
-	if res := fmt.Sprint(kv); res != "[{a 1} {bar foo} {foo bar} {foobar baz}]" {
+	if res := fmt.Sprint(kv); res != "[{a {1 }} {bar {foo }} {foo {bar }} {foobar {baz }}]" {
 		t.Errorf("Expected kv to be %v, got %v",
-			"[{a 1} {bar foo} {foo bar} {foobar baz}]",
+			"[{a {1 }} {bar {foo }} {foo {bar }} {foobar {baz }}]",
 			res)
 	}
 }
