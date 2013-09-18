@@ -38,8 +38,10 @@ func (lex *Lexicon) Set(key, value string) {
 	_, present := lex.hashmap[key]
 	if !present {
 		lex.hashmap[key] = &LexValue{Value: value}
+		lex.list.Insert(key)
+	} else {
+		lex.hashmap[key].Value = value
 	}
-	lex.list.Insert(key)
 	lex.mutex.Unlock()
 }
 

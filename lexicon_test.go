@@ -10,7 +10,13 @@ func TestSetGet(t *testing.T) {
 	lex.Set("foo", "bar")
 
 	if val, _ := lex.Get("foo"); val != "bar" {
-		t.Errorf(`Expected "foo", got %v.`, val)
+		t.Errorf(`Expected "bar", got "%v".`, val)
+	}
+
+	lex.Set("foo", "baz")
+
+	if val, _ := lex.Get("foo"); val != "baz" {
+		t.Errorf(`Expected "baz", got "%v".`, val)
 	}
 }
 
