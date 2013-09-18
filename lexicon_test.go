@@ -1,7 +1,6 @@
 package lexicon
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -20,6 +19,32 @@ func TestSetGet(t *testing.T) {
 	}
 }
 
+func TestSetCollision(t *testing.T) {
+	lex := New()
+	lex.Set("foo", "bar")
+
+	val, version := lex.Get("foo")
+	if val != "bar" {
+		t.Errorf(`Expected "bar", got "%v".`, val)
+	}
+
+	lex.Set("foo", "baz", version)
+
+	if val, _ := lex.Get("foo"); val != "baz" {
+		t.Errorf(`Expected "baz", got "%v".`, val)
+	}
+
+	err := lex.Set("foo", "bazz", version)
+
+	if err != ErrConflict {
+		t.Errorf("Expected ErrConflict, got %v", err)
+	}
+
+	if val, _ := lex.Get("foo"); val != "baz" {
+		t.Errorf(`Expected "baz", got "%v".`, val)
+	}
+}
+
 func TestGetRange(t *testing.T) {
 	lex := New()
 	lex.Set("foo", "bar")
@@ -28,10 +53,8 @@ func TestGetRange(t *testing.T) {
 	lex.Set("a", "1")
 
 	kv := lex.GetRange("", "\xff")
-	if res := fmt.Sprint(kv); res != "[{a {1 }} {bar {foo }} {foo {bar }} {foobar {baz }}]" {
-		t.Errorf("Expected kv to be %v, got %v",
-			"[{a {1 }} {bar {foo }} {foo {bar }} {foobar {baz }}]",
-			res)
+	if len(kv) != 4 {
+		t.Errorf("Expected 4 results, got %d", len(kv))
 	}
 }
 
@@ -46,10 +69,8 @@ func TestSetMany(t *testing.T) {
 
 	lex.SetMany(pairs)
 	kv := lex.GetRange("", "\xff")
-	if res := fmt.Sprint(kv); res != "[{a {1 }} {bar {foo }} {foo {bar }} {foobar {baz }}]" {
-		t.Errorf("Expected kv to be %v, got %v",
-			"[{a {1 }} {bar {foo }} {foo {bar }} {foobar {baz }}]",
-			res)
+	if len(kv) != 4 {
+		t.Errorf("Expected 4 results, got %d", len(kv))
 	}
 }
 
