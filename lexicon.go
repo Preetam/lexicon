@@ -1,10 +1,16 @@
 package lexicon
 
 import (
+	"crypto/md5"
+	"errors"
+	"fmt"
+	"io"
 	"sync"
 
 	"github.com/PreetamJinka/orderedlist"
 )
+
+var ErrConflict = errors.New("lexicon: version conflict")
 
 type KeyValue struct {
 	Key   string
@@ -32,31 +38,50 @@ func New() *Lexicon {
 	}
 }
 
-// Set sets a key to a value.
-func (lex *Lexicon) Set(key, value string) {
-	lex.mutex.Lock()
+func (lex *Lexicon) setHelper(key, value, version string) error {
 	_, present := lex.hashmap[key]
 	if !present {
-		lex.hashmap[key] = &LexValue{Value: value}
+		lex.hashmap[key] = &LexValue{
+			Value:   value,
+			version: generateVersion(""),
+		}
 		lex.list.Insert(key)
 	} else {
-		lex.hashmap[key].Value = value
+		if version == "" {
+			lex.hashmap[key].Value = value
+			lex.hashmap[key].version = generateVersion("")
+			return nil
+		} else {
+			if version != lex.hashmap[key].version {
+				return ErrConflict
+			} else {
+				lex.hashmap[key].Value = value
+				lex.hashmap[key].version = generateVersion(lex.hashmap[key].version)
+			}
+		}
 	}
-	lex.mutex.Unlock()
+
+	return nil
+}
+
+// Set sets a key to a value.
+func (lex *Lexicon) Set(params ...string) error {
+	lex.mutex.Lock()
+	defer lex.mutex.Unlock()
+
+	if len(params) == 2 {
+		return lex.setHelper(params[0], params[1], "")
+	} else {
+		return lex.setHelper(params[0], params[1], params[2])
+	}
 }
 
 func (lex *Lexicon) SetMany(kv map[string]string) {
 	lex.mutex.Lock()
+	defer lex.mutex.Unlock()
 	for key := range kv {
-		_, present := lex.hashmap[key]
-		if !present {
-			lex.hashmap[key] = &LexValue{Value: kv[key]}
-		} else {
-			lex.hashmap[key].Value = kv[key]
-		}
-		lex.list.Insert(key)
+		lex.setHelper(key, kv[key], "")
 	}
-	lex.mutex.Unlock()
 }
 
 // Get returns a value at the given key.
@@ -67,9 +92,9 @@ func (lex *Lexicon) Get(key string) (value string, version string) {
 // Remove deletes a key-value pair from the lexicon.
 func (lex *Lexicon) Remove(key string) {
 	lex.mutex.Lock()
+	defer lex.mutex.Unlock()
 	delete(lex.hashmap, key)
 	lex.list.Remove(key)
-	lex.mutex.Unlock()
 }
 
 // GetRange returns a slice of KeyValue structs.
@@ -88,4 +113,10 @@ func (lex *Lexicon) GetRange(start string, end string) (kv []KeyValue) {
 		})
 	}
 	return
+}
+
+func generateVersion(prev string) string {
+	h := md5.New()
+	io.WriteString(h, prev)
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
