@@ -19,6 +19,32 @@ func TestSetGet(t *testing.T) {
 	}
 }
 
+func TestSetCollision(t *testing.T) {
+	lex := New()
+	lex.Set("foo", "bar")
+
+	val, version := lex.Get("foo")
+	if val != "bar" {
+		t.Errorf(`Expected "bar", got "%v".`, val)
+	}
+
+	lex.Set("foo", "baz", version)
+
+	if val, _ := lex.Get("foo"); val != "baz" {
+		t.Errorf(`Expected "baz", got "%v".`, val)
+	}
+
+	err := lex.Set("foo", "bazz", version)
+
+	if err != ErrConflict {
+		t.Errorf("Expected ErrConflict, got %v", err)
+	}
+
+	if val, _ := lex.Get("foo"); val != "baz" {
+		t.Errorf(`Expected "baz", got "%v".`, val)
+	}
+}
+
 func TestGetRange(t *testing.T) {
 	lex := New()
 	lex.Set("foo", "bar")
