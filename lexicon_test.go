@@ -8,13 +8,13 @@ func TestSetGet(t *testing.T) {
 	lex := New()
 	lex.Set("foo", "bar")
 
-	if val, _ := lex.Get("foo"); val != "bar" {
+	if val, _, _ := lex.Get("foo"); val != "bar" {
 		t.Errorf(`Expected "bar", got "%v".`, val)
 	}
 
 	lex.Set("foo", "baz")
 
-	if val, _ := lex.Get("foo"); val != "baz" {
+	if val, _, _ := lex.Get("foo"); val != "baz" {
 		t.Errorf(`Expected "baz", got "%v".`, val)
 	}
 }
@@ -23,14 +23,14 @@ func TestSetCollision(t *testing.T) {
 	lex := New()
 	lex.Set("foo", "bar")
 
-	val, version := lex.Get("foo")
+	val, version, _ := lex.Get("foo")
 	if val != "bar" {
 		t.Errorf(`Expected "bar", got "%v".`, val)
 	}
 
 	lex.Set("foo", "baz", version)
 
-	if val, _ := lex.Get("foo"); val != "baz" {
+	if val, _, _ := lex.Get("foo"); val != "baz" {
 		t.Errorf(`Expected "baz", got "%v".`, val)
 	}
 
@@ -40,7 +40,7 @@ func TestSetCollision(t *testing.T) {
 		t.Errorf("Expected ErrConflict, got %v", err)
 	}
 
-	if val, _ := lex.Get("foo"); val != "baz" {
+	if val, _, _ := lex.Get("foo"); val != "baz" {
 		t.Errorf(`Expected "baz", got "%v".`, val)
 	}
 }
@@ -71,6 +71,14 @@ func TestSetMany(t *testing.T) {
 	kv := lex.GetRange("", "\xff")
 	if len(kv) != 4 {
 		t.Errorf("Expected 4 results, got %d", len(kv))
+	}
+}
+
+func TestMissingKey(t *testing.T) {
+	lex := New()
+
+	if val, _, err := lex.Get("foo"); err != ErrKeyNotPresent {
+		t.Errorf(`Expected ErrKeyNotPresent, got value "%v".`, val)
 	}
 }
 
