@@ -11,6 +11,7 @@ import (
 )
 
 var ErrConflict = errors.New("lexicon: version conflict")
+var ErrKeyNotPresent = errors.New("lexicon: key not present")
 
 type KeyValue struct {
 	Key   string
@@ -85,8 +86,14 @@ func (lex *Lexicon) SetMany(kv map[string]string) {
 }
 
 // Get returns a value at the given key.
-func (lex *Lexicon) Get(key string) (value string, version string) {
-	return lex.hashmap[key].Value, lex.hashmap[key].version
+func (lex *Lexicon) Get(key string) (string, string, error) {
+	val, present := lex.hashmap[key]
+
+	if !present {
+		return "", "", ErrKeyNotPresent
+	}
+
+	return val.Value, val.version, nil
 }
 
 // Remove deletes a key-value pair from the lexicon.
