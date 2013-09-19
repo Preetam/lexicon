@@ -104,6 +104,18 @@ func (lex *Lexicon) Remove(key string) {
 	lex.list.Remove(key)
 }
 
+func (lex *Lexicon) ClearRange(start string, end string) {
+	lex.mutex.Lock()
+	defer lex.mutex.Unlock()
+
+	keys := lex.list.GetRange(start, end)
+
+	for _, key := range keys {
+		delete(lex.hashmap, key)
+		lex.list.Remove(key)
+	}
+}
+
 // GetRange returns a slice of KeyValue structs.
 // The range is from [start, end).
 func (lex *Lexicon) GetRange(start string, end string) (kv []KeyValue) {
