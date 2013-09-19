@@ -74,6 +74,21 @@ func TestSetMany(t *testing.T) {
 	}
 }
 
+func TestClearRange(t *testing.T) {
+	lex := New()
+	lex.Set("foo", "bar")
+	lex.Set("foobar", "baz")
+	lex.Set("bar", "foo")
+	lex.Set("a", "1")
+
+	lex.ClearRange("foo", "foobar\xff")
+
+	kv := lex.GetRange("", "\xff")
+	if len(kv) != 2 {
+		t.Errorf("Expected 2 results, got %d", len(kv))
+	}
+}
+
 func TestMissingKey(t *testing.T) {
 	lex := New()
 
