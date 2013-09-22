@@ -1,10 +1,7 @@
 package lexicon
 
 import (
-	"crypto/md5"
 	"errors"
-	"fmt"
-	"io"
 	"sync"
 
 	"github.com/PreetamJinka/orderedlist"
@@ -20,7 +17,7 @@ type KeyValue struct {
 
 type LexValue struct {
 	Value   string
-	version string
+	version int
 }
 
 // Lexicon is an ordered key-value store.
@@ -39,26 +36,20 @@ func New() *Lexicon {
 	}
 }
 
-func (lex *Lexicon) setHelper(key, value, version string) error {
+func (lex *Lexicon) setHelper(key string, value string, version int) error {
 	_, present := lex.hashmap[key]
 	if !present {
 		lex.hashmap[key] = &LexValue{
 			Value:   value,
-			version: generateVersion(""),
+			version: 0,
 		}
 		lex.list.Insert(key)
 	} else {
-		if version == "" {
-			lex.hashmap[key].Value = value
-			lex.hashmap[key].version = generateVersion("")
-			return nil
+		if version != lex.hashmap[key].version && version != -1 {
+			return ErrConflict
 		} else {
-			if version != lex.hashmap[key].version {
-				return ErrConflict
-			} else {
-				lex.hashmap[key].Value = value
-				lex.hashmap[key].version = generateVersion(lex.hashmap[key].version)
-			}
+			lex.hashmap[key].Value = value
+			lex.hashmap[key].version++
 		}
 	}
 
@@ -66,31 +57,27 @@ func (lex *Lexicon) setHelper(key, value, version string) error {
 }
 
 // Set sets a key to a value.
-func (lex *Lexicon) Set(params ...string) error {
+func (lex *Lexicon) Set(key string, value string, version int) error {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 
-	if len(params) == 2 {
-		return lex.setHelper(params[0], params[1], "")
-	} else {
-		return lex.setHelper(params[0], params[1], params[2])
-	}
+	return lex.setHelper(key, value, version)
 }
 
 func (lex *Lexicon) SetMany(kv map[string]string) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 	for key := range kv {
-		lex.setHelper(key, kv[key], "")
+		lex.setHelper(key, kv[key], -1)
 	}
 }
 
 // Get returns a value at the given key.
-func (lex *Lexicon) Get(key string) (string, string, error) {
+func (lex *Lexicon) Get(key string) (string, int, error) {
 	val, present := lex.hashmap[key]
 
 	if !present {
-		return "", "", ErrKeyNotPresent
+		return "", -1, ErrKeyNotPresent
 	}
 
 	return val.Value, val.version, nil
@@ -132,10 +119,4 @@ func (lex *Lexicon) GetRange(start string, end string) (kv []KeyValue) {
 		})
 	}
 	return
-}
-
-func generateVersion(prev string) string {
-	h := md5.New()
-	io.WriteString(h, prev)
-	return fmt.Sprintf("%x", h.Sum(nil))
 }
