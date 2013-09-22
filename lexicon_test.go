@@ -6,13 +6,13 @@ import (
 
 func TestSetGet(t *testing.T) {
 	lex := New()
-	lex.Set("foo", "bar")
+	lex.Set("foo", "bar", 0)
 
 	if val, _, _ := lex.Get("foo"); val != "bar" {
 		t.Errorf(`Expected "bar", got "%v".`, val)
 	}
 
-	lex.Set("foo", "baz")
+	lex.Set("foo", "baz", 0)
 
 	if val, _, _ := lex.Get("foo"); val != "baz" {
 		t.Errorf(`Expected "baz", got "%v".`, val)
@@ -21,7 +21,7 @@ func TestSetGet(t *testing.T) {
 
 func TestSetCollision(t *testing.T) {
 	lex := New()
-	lex.Set("foo", "bar")
+	lex.Set("foo", "bar", 0)
 
 	val, version, _ := lex.Get("foo")
 	if val != "bar" {
@@ -47,10 +47,10 @@ func TestSetCollision(t *testing.T) {
 
 func TestGetRange(t *testing.T) {
 	lex := New()
-	lex.Set("foo", "bar")
-	lex.Set("foobar", "baz")
-	lex.Set("bar", "foo")
-	lex.Set("a", "1")
+	lex.Set("foo", "bar", 0)
+	lex.Set("foobar", "baz", 0)
+	lex.Set("bar", "foo", 0)
+	lex.Set("a", "1", 0)
 
 	kv := lex.GetRange("", "\xff")
 	if len(kv) != 4 {
@@ -76,10 +76,10 @@ func TestSetMany(t *testing.T) {
 
 func TestClearRange(t *testing.T) {
 	lex := New()
-	lex.Set("foo", "bar")
-	lex.Set("foobar", "baz")
-	lex.Set("bar", "foo")
-	lex.Set("a", "1")
+	lex.Set("foo", "bar", 0)
+	lex.Set("foobar", "baz", 0)
+	lex.Set("bar", "foo", 0)
+	lex.Set("a", "1", 0)
 
 	lex.ClearRange("foo", "foobar\xff")
 
@@ -101,7 +101,7 @@ func BenchmarkBasicSetRemove(b *testing.B) {
 	lex := New()
 
 	for i := 0; i < b.N; i++ {
-		lex.Set(string(i), "val")
+		lex.Set(string(i), "val", 0)
 	}
 
 	for i := 0; i < b.N; i++ {
