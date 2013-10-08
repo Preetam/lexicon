@@ -7,23 +7,35 @@ import (
 	"github.com/PreetamJinka/orderedlist"
 )
 
+type ComparableString string
+
+func (cs ComparableString) Compare(c orderedlist.Comparable) int {
+	if cs > c.(ComparableString) {
+		return 1
+	}
+	if cs < c.(ComparableString) {
+		return -1
+	}
+	return 0
+}
+
 var ErrConflict = errors.New("lexicon: version conflict")
 var ErrKeyNotPresent = errors.New("lexicon: key not present")
 
 type KeyValue struct {
-	Key   string
+	Key   orderedlist.Comparable
 	Value LexValue
 }
 
 type LexValue struct {
-	Value   string
+	Value   ComparableString
 	version int
 }
 
 // Lexicon is an ordered key-value store.
 type Lexicon struct {
 	list    *orderedlist.OrderedList
-	hashmap map[string]*LexValue
+	hashmap map[orderedlist.Comparable]*LexValue
 	mutex   *sync.Mutex
 }
 
@@ -31,12 +43,12 @@ type Lexicon struct {
 func New() *Lexicon {
 	return &Lexicon{
 		list:    orderedlist.New(),
-		hashmap: make(map[string]*LexValue),
+		hashmap: make(map[orderedlist.Comparable]*LexValue),
 		mutex:   &sync.Mutex{},
 	}
 }
 
-func (lex *Lexicon) setHelper(key string, value string, version int) error {
+func (lex *Lexicon) setHelper(key ComparableString, value ComparableString, version int) error {
 	_, present := lex.hashmap[key]
 	if !present {
 		lex.hashmap[key] = &LexValue{
@@ -57,14 +69,14 @@ func (lex *Lexicon) setHelper(key string, value string, version int) error {
 }
 
 // Set sets a key to a value.
-func (lex *Lexicon) Set(key string, value string, version int) error {
+func (lex *Lexicon) Set(key ComparableString, value ComparableString, version int) error {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 
 	return lex.setHelper(key, value, version)
 }
 
-func (lex *Lexicon) SetMany(kv map[string]string) {
+func (lex *Lexicon) SetMany(kv map[ComparableString]ComparableString) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 	for key := range kv {
@@ -73,7 +85,7 @@ func (lex *Lexicon) SetMany(kv map[string]string) {
 }
 
 // Get returns a value at the given key.
-func (lex *Lexicon) Get(key string) (string, int, error) {
+func (lex *Lexicon) Get(key ComparableString) (ComparableString, int, error) {
 	val, present := lex.hashmap[key]
 
 	if !present {
@@ -84,14 +96,14 @@ func (lex *Lexicon) Get(key string) (string, int, error) {
 }
 
 // Remove deletes a key-value pair from the lexicon.
-func (lex *Lexicon) Remove(key string) {
+func (lex *Lexicon) Remove(key ComparableString) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 	delete(lex.hashmap, key)
 	lex.list.Remove(key)
 }
 
-func (lex *Lexicon) ClearRange(start string, end string) {
+func (lex *Lexicon) ClearRange(start ComparableString, end ComparableString) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 
@@ -105,7 +117,7 @@ func (lex *Lexicon) ClearRange(start string, end string) {
 
 // GetRange returns a slice of KeyValue structs.
 // The range is from [start, end).
-func (lex *Lexicon) GetRange(start string, end string) (kv []KeyValue) {
+func (lex *Lexicon) GetRange(start ComparableString, end ComparableString) (kv []KeyValue) {
 	kv = make([]KeyValue, 0)
 
 	lex.mutex.Lock()

@@ -60,7 +60,7 @@ func TestGetRange(t *testing.T) {
 
 func TestSetMany(t *testing.T) {
 	lex := New()
-	pairs := map[string]string{
+	pairs := map[ComparableString]ComparableString{
 		"foo":    "bar",
 		"foobar": "baz",
 		"bar":    "foo",
@@ -101,10 +101,10 @@ func BenchmarkBasicSetRemove(b *testing.B) {
 	lex := New()
 
 	for i := 0; i < b.N; i++ {
-		lex.Set(string(i), "val", 0)
+		lex.Set(ComparableString(i), "val", 0)
 	}
 
 	for i := 0; i < b.N; i++ {
-		lex.Remove(string(i))
+		lex.Remove(ComparableString(i))
 	}
 }
