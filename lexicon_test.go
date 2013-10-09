@@ -2,31 +2,33 @@ package lexicon
 
 import (
 	"testing"
+
+	"github.com/PreetamJinka/orderedlist"
 )
 
 func TestSetGet(t *testing.T) {
 	lex := New()
-	lex.Set("foo", "bar", 0)
+	lex.Set(ComparableString("foo"), "bar")
 
-	if val, _ := lex.Get("foo"); val != "bar" {
+	if val, _ := lex.Get(ComparableString("foo")); val != "bar" {
 		t.Errorf(`Expected "bar", got "%v".`, val)
 	}
 
-	lex.Set("foo", "baz", 0)
+	lex.Set(ComparableString("foo"), "baz")
 
-	if val, _ := lex.Get("foo"); val != "baz" {
+	if val, _ := lex.Get(ComparableString("foo")); val != "baz" {
 		t.Errorf(`Expected "baz", got "%v".`, val)
 	}
 }
 
 func TestGetRange(t *testing.T) {
 	lex := New()
-	lex.Set("foo", "bar", 0)
-	lex.Set("foobar", "baz", 0)
-	lex.Set("bar", "foo", 0)
-	lex.Set("a", "1", 0)
+	lex.Set(ComparableString("foo"), "bar")
+	lex.Set(ComparableString("foobar"), "baz")
+	lex.Set(ComparableString("bar"), "foo")
+	lex.Set(ComparableString("a"), "1")
 
-	kv := lex.GetRange("", "\xff")
+	kv := lex.GetRange(ComparableString(""), ComparableString("\xff"))
 	if len(kv) != 4 {
 		t.Errorf("Expected 4 results, got %d", len(kv))
 	}
@@ -34,15 +36,15 @@ func TestGetRange(t *testing.T) {
 
 func TestSetMany(t *testing.T) {
 	lex := New()
-	pairs := map[ComparableString]ComparableString{
-		"foo":    "bar",
-		"foobar": "baz",
-		"bar":    "foo",
-		"a":      "1",
+	pairs := map[orderedlist.Comparable]interface{}{
+		ComparableString("foo"):    "bar",
+		ComparableString("foobar"): "baz",
+		ComparableString("bar"):    "foo",
+		ComparableString("a"):      "1",
 	}
 
 	lex.SetMany(pairs)
-	kv := lex.GetRange("", "\xff")
+	kv := lex.GetRange(ComparableString(""), ComparableString("\xff"))
 	if len(kv) != 4 {
 		t.Errorf("Expected 4 results, got %d", len(kv))
 	}
@@ -50,14 +52,14 @@ func TestSetMany(t *testing.T) {
 
 func TestClearRange(t *testing.T) {
 	lex := New()
-	lex.Set("foo", "bar", 0)
-	lex.Set("foobar", "baz", 0)
-	lex.Set("bar", "foo", 0)
-	lex.Set("a", "1", 0)
+	lex.Set(ComparableString("foo"), "bar")
+	lex.Set(ComparableString("foobar"), "baz")
+	lex.Set(ComparableString("bar"), "foo")
+	lex.Set(ComparableString("a"), "1")
 
-	lex.ClearRange("foo", "foobar\xff")
+	lex.ClearRange(ComparableString("foo"), ComparableString("foobar\xff"))
 
-	kv := lex.GetRange("", "\xff")
+	kv := lex.GetRange(ComparableString(""), ComparableString("\xff"))
 	if len(kv) != 2 {
 		t.Errorf("Expected 2 results, got %d", len(kv))
 	}
@@ -66,7 +68,7 @@ func TestClearRange(t *testing.T) {
 func TestMissingKey(t *testing.T) {
 	lex := New()
 
-	if val, err := lex.Get("foo"); err != ErrKeyNotPresent {
+	if val, err := lex.Get(ComparableString("foo")); err != ErrKeyNotPresent {
 		t.Errorf(`Expected ErrKeyNotPresent, got value "%v".`, val)
 	}
 }
@@ -75,7 +77,7 @@ func BenchmarkBasicSetRemove(b *testing.B) {
 	lex := New()
 
 	for i := 0; i < b.N; i++ {
-		lex.Set(ComparableString(i), "val", 0)
+		lex.Set(ComparableString(i), "val")
 	}
 
 	for i := 0; i < b.N; i++ {
