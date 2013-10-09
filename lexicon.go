@@ -24,18 +24,13 @@ var ErrKeyNotPresent = errors.New("lexicon: key not present")
 
 type KeyValue struct {
 	Key   orderedlist.Comparable
-	Value LexValue
-}
-
-type LexValue struct {
-	Value   ComparableString
-	version int
+	Value ComparableString
 }
 
 // Lexicon is an ordered key-value store.
 type Lexicon struct {
 	list    *orderedlist.OrderedList
-	hashmap map[orderedlist.Comparable]*LexValue
+	hashmap map[orderedlist.Comparable]ComparableString
 	mutex   *sync.Mutex
 }
 
@@ -43,26 +38,19 @@ type Lexicon struct {
 func New() *Lexicon {
 	return &Lexicon{
 		list:    orderedlist.New(),
-		hashmap: make(map[orderedlist.Comparable]*LexValue),
+		hashmap: make(map[orderedlist.Comparable]ComparableString),
 		mutex:   &sync.Mutex{},
 	}
 }
 
-func (lex *Lexicon) setHelper(key ComparableString, value ComparableString, version int) error {
+func (lex *Lexicon) setHelper(key ComparableString, value ComparableString) error {
 	_, present := lex.hashmap[key]
+
 	if !present {
-		lex.hashmap[key] = &LexValue{
-			Value:   value,
-			version: 0,
-		}
+		lex.hashmap[key] = value
 		lex.list.Insert(key)
 	} else {
-		if version != lex.hashmap[key].version && version != -1 {
-			return ErrConflict
-		} else {
-			lex.hashmap[key].Value = value
-			lex.hashmap[key].version++
-		}
+		lex.hashmap[key] = value
 	}
 
 	return nil
@@ -73,26 +61,26 @@ func (lex *Lexicon) Set(key ComparableString, value ComparableString, version in
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 
-	return lex.setHelper(key, value, version)
+	return lex.setHelper(key, value)
 }
 
 func (lex *Lexicon) SetMany(kv map[ComparableString]ComparableString) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 	for key := range kv {
-		lex.setHelper(key, kv[key], -1)
+		lex.setHelper(key, kv[key])
 	}
 }
 
 // Get returns a value at the given key.
-func (lex *Lexicon) Get(key ComparableString) (ComparableString, int, error) {
+func (lex *Lexicon) Get(key ComparableString) (ComparableString, error) {
 	val, present := lex.hashmap[key]
 
 	if !present {
-		return "", -1, ErrKeyNotPresent
+		return "", ErrKeyNotPresent
 	}
 
-	return val.Value, val.version, nil
+	return val, nil
 }
 
 // Remove deletes a key-value pair from the lexicon.
@@ -127,7 +115,7 @@ func (lex *Lexicon) GetRange(start ComparableString, end ComparableString) (kv [
 	for _, key := range keys {
 		kv = append(kv, KeyValue{
 			Key:   key,
-			Value: *lex.hashmap[key],
+			Value: lex.hashmap[key],
 		})
 	}
 	return
