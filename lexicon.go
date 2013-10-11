@@ -7,18 +7,6 @@ import (
 	"github.com/PreetamJinka/orderedlist"
 )
 
-type ComparableString string
-
-func (cs ComparableString) Compare(c orderedlist.Comparable) int {
-	if cs > c.(ComparableString) {
-		return 1
-	}
-	if cs < c.(ComparableString) {
-		return -1
-	}
-	return 0
-}
-
 var ErrKeyNotPresent = errors.New("lexicon: key not present")
 
 type KeyValue struct {
@@ -42,7 +30,11 @@ func New() *Lexicon {
 	}
 }
 
-func (lex *Lexicon) setHelper(key orderedlist.Comparable, value interface{}) error {
+// Set sets a key to a value.
+func (lex *Lexicon) Set(key orderedlist.Comparable, value interface{}) {
+	lex.mutex.Lock()
+	defer lex.mutex.Unlock()
+
 	_, present := lex.hashmap[key]
 
 	if !present {
@@ -51,23 +43,21 @@ func (lex *Lexicon) setHelper(key orderedlist.Comparable, value interface{}) err
 	} else {
 		lex.hashmap[key] = value
 	}
-
-	return nil
 }
 
-// Set sets a key to a value.
-func (lex *Lexicon) Set(key orderedlist.Comparable, value interface{}) error {
-	lex.mutex.Lock()
-	defer lex.mutex.Unlock()
-
-	return lex.setHelper(key, value)
-}
-
+// SetMany sets multiple key-value pairs.
 func (lex *Lexicon) SetMany(kv map[orderedlist.Comparable]interface{}) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 	for key := range kv {
-		lex.setHelper(key, kv[key])
+		_, present := lex.hashmap[key]
+
+		if !present {
+			lex.hashmap[key] = kv[key]
+			lex.list.Insert(key)
+		} else {
+			lex.hashmap[key] = kv[key]
+		}
 	}
 }
 
@@ -82,7 +72,7 @@ func (lex *Lexicon) Get(key orderedlist.Comparable) (interface{}, error) {
 	return val, nil
 }
 
-// Remove deletes a key-value pair from the lexicon.
+// Remove deletes a key-value pair.
 func (lex *Lexicon) Remove(key orderedlist.Comparable) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
@@ -90,6 +80,8 @@ func (lex *Lexicon) Remove(key orderedlist.Comparable) {
 	lex.list.Remove(key)
 }
 
+// ClearRange removes a range of key-value pairs.
+// The range is from [start, end).
 func (lex *Lexicon) ClearRange(start orderedlist.Comparable, end orderedlist.Comparable) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
