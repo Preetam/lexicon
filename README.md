@@ -6,11 +6,11 @@ A *lexicon* is a synonym for dictionary.
 It's a combination of a hashmap and an [ordered list](https://github.com/PreetamJinka/orderedlist).
 
 I've tried to make it as generic as possible, but since we need to have some way of knowing how to order elements,
-keys must implement `orderedlist.Comparable`.
+keys must implement `Comparable`.
 
 ```go
 type Comparable interface {
-	Compare(c Comparable) int
+	Compare(c interface{}) int
 }
 ```
 

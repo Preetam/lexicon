@@ -2,13 +2,11 @@ package lexicon
 
 import (
 	"testing"
-
-	"github.com/PreetamJinka/orderedlist"
 )
 
 type ComparableString string
 
-func (cs ComparableString) Compare(c orderedlist.Comparable) int {
+func (cs ComparableString) Compare(c interface{}) int {
 	if cs > c.(ComparableString) {
 		return 1
 	}
@@ -48,7 +46,7 @@ func TestGetRange(t *testing.T) {
 
 func TestSetMany(t *testing.T) {
 	lex := New()
-	pairs := map[orderedlist.Comparable]interface{}{
+	pairs := map[Comparable]interface{}{
 		ComparableString("foo"):    "bar",
 		ComparableString("foobar"): "baz",
 		ComparableString("bar"):    "foo",

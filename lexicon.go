@@ -7,17 +7,19 @@ import (
 	"github.com/PreetamJinka/orderedlist"
 )
 
+type Comparable orderedlist.Comparable
+
 var ErrKeyNotPresent = errors.New("lexicon: key not present")
 
 type KeyValue struct {
-	Key   orderedlist.Comparable
+	Key   Comparable
 	Value interface{}
 }
 
 // Lexicon is an ordered key-value store.
 type Lexicon struct {
 	list    *orderedlist.OrderedList
-	hashmap map[orderedlist.Comparable]interface{}
+	hashmap map[Comparable]interface{}
 	mutex   *sync.Mutex
 }
 
@@ -25,13 +27,13 @@ type Lexicon struct {
 func New() *Lexicon {
 	return &Lexicon{
 		list:    orderedlist.New(),
-		hashmap: make(map[orderedlist.Comparable]interface{}),
+		hashmap: make(map[Comparable]interface{}),
 		mutex:   &sync.Mutex{},
 	}
 }
 
 // Set sets a key to a value.
-func (lex *Lexicon) Set(key orderedlist.Comparable, value interface{}) {
+func (lex *Lexicon) Set(key Comparable, value interface{}) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 
@@ -46,7 +48,7 @@ func (lex *Lexicon) Set(key orderedlist.Comparable, value interface{}) {
 }
 
 // SetMany sets multiple key-value pairs.
-func (lex *Lexicon) SetMany(kv map[orderedlist.Comparable]interface{}) {
+func (lex *Lexicon) SetMany(kv map[Comparable]interface{}) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 	for key := range kv {
@@ -62,7 +64,7 @@ func (lex *Lexicon) SetMany(kv map[orderedlist.Comparable]interface{}) {
 }
 
 // Get returns a value at the given key.
-func (lex *Lexicon) Get(key orderedlist.Comparable) (interface{}, error) {
+func (lex *Lexicon) Get(key Comparable) (interface{}, error) {
 	val, present := lex.hashmap[key]
 
 	if !present {
@@ -73,7 +75,7 @@ func (lex *Lexicon) Get(key orderedlist.Comparable) (interface{}, error) {
 }
 
 // Remove deletes a key-value pair.
-func (lex *Lexicon) Remove(key orderedlist.Comparable) {
+func (lex *Lexicon) Remove(key Comparable) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 	delete(lex.hashmap, key)
@@ -82,7 +84,7 @@ func (lex *Lexicon) Remove(key orderedlist.Comparable) {
 
 // ClearRange removes a range of key-value pairs.
 // The range is from [start, end).
-func (lex *Lexicon) ClearRange(start orderedlist.Comparable, end orderedlist.Comparable) {
+func (lex *Lexicon) ClearRange(start Comparable, end Comparable) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 
@@ -96,7 +98,7 @@ func (lex *Lexicon) ClearRange(start orderedlist.Comparable, end orderedlist.Com
 
 // GetRange returns a slice of KeyValue structs.
 // The range is from [start, end).
-func (lex *Lexicon) GetRange(start orderedlist.Comparable, end orderedlist.Comparable) (kv []KeyValue) {
+func (lex *Lexicon) GetRange(start Comparable, end Comparable) (kv []KeyValue) {
 	kv = make([]KeyValue, 0)
 
 	lex.mutex.Lock()
