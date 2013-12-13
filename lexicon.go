@@ -108,7 +108,7 @@ func (lex *Lexicon) GetRange(start Comparable, end Comparable) (kv []KeyValue) {
 	for _, key := range keys {
 		kv = append(kv, KeyValue{
 			Key:   key,
-			Value: lex.hashmap[key],
+			Value: lex.hashmap[key.(Comparable)],
 		})
 	}
 	return
