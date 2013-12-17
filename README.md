@@ -1,5 +1,5 @@
 # lexicon [![Build Status](https://drone.io/github.com/PreetamJinka/lexicon/status.png)](https://drone.io/github.com/PreetamJinka/lexicon/latest)
-A lexicographically ordered map for Go.
+A ordered map for Go.
 
 A *lexicon* is a synonym for dictionary.
 
