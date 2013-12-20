@@ -19,7 +19,7 @@ func CompareStrings(a, b interface{}) (result int) {
 	}
 
 	if aStr < bStr {
-		result -1
+		result = -1
 	}
 
 	return
