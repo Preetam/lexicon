@@ -5,12 +5,28 @@ A *lexicon* is a synonym for dictionary.
 
 It's a combination of a hashmap and an [ordered list](https://github.com/PreetamJinka/orderedlist).
 
-I've tried to make it as generic as possible, but since we need to have some way of knowing how to order elements,
-keys must implement `Comparable`.
+You'll have to pass in a compare function to New(). Here's an example that compares strings. Notice I'm recovering from panics.
 
 ```go
-type Comparable interface {
-	Compare(c interface{}) int
+func compareStrings(a, b interface{}) (result int) {
+	defer func() {
+		if r := recover(); r != nil {
+			// Log it?
+		}
+	}()
+
+	aStr := a.(string)
+	bStr := b.(string)
+
+	if aStr > bStr {
+		result = 1
+	}
+
+	if aStr < bStr {
+		result -1
+	}
+
+	return
 }
 ```
 
