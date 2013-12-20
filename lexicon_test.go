@@ -7,7 +7,7 @@ import (
 func CompareStrings(a, b interface{}) (result int) {
 	defer func() {
 		if r := recover(); r != nil {
-			result = 0
+			// Log it?
 		}
 	}()
 
@@ -19,7 +19,7 @@ func CompareStrings(a, b interface{}) (result int) {
 	}
 
 	if aStr < bStr {
-		return -1
+		result -1
 	}
 
 	return
