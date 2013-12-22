@@ -98,11 +98,11 @@ func (lex *Lexicon) ClearRange(start, end interface{}) {
 // GetRange returns a slice of KeyValue structs.
 // The range is from [start, end).
 func (lex *Lexicon) GetRange(start, end interface{}) (kv []KeyValue) {
-	kv = make([]KeyValue, 0)
-
 	lex.mutex.Lock()
+	defer lex.mutex.Unlock()
+
 	keys := lex.list.GetRange(start, end)
-	lex.mutex.Unlock()
+	kv = make([]KeyValue, 0, len(keys))
 
 	for _, key := range keys {
 		kv = append(kv, KeyValue{
