@@ -111,6 +111,29 @@ func TestMissingKey(t *testing.T) {
 	}
 }
 
+func TestVersioning(t *testing.T) {
+	lex := New(CompareStrings)
+
+	lex.Set("foo", "bar") // version 1
+
+	if val := lex.Get("foo"); val != "bar" {
+		t.Errorf(`Expected "bar", got "%v".`, val)
+	}
+
+	lex.Set("foo", "baz") // version 2
+
+	if val := lex.Get("foo"); val != "baz" {
+		t.Errorf(`Expected "baz", got "%v".`, val)
+	}
+
+	if val := lex.Get("foo", 1); val != "bar" {
+		t.Errorf(`Expected "bar" at version %v, got "%v".`, 1, val)
+	}
+	if val := lex.Get("foo", 2); val != "baz" {
+		t.Errorf(`Expected "baz" at version %v, got "%v".`, 2, val)
+	}
+}
+
 func BenchmarkBasicSetRemove(b *testing.B) {
 	lex := New(CompareStrings)
 
