@@ -29,13 +29,13 @@ func TestSetGet(t *testing.T) {
 	lex := New(CompareStrings)
 	lex.Set("foo", "bar")
 
-	if val, _ := lex.Get("foo"); val != "bar" {
+	if val := lex.Get("foo"); val != "bar" {
 		t.Errorf(`Expected "bar", got "%v".`, val)
 	}
 
 	lex.Set("foo", "baz")
 
-	if val, _ := lex.Get("foo"); val != "baz" {
+	if val := lex.Get("foo"); val != "baz" {
 		t.Errorf(`Expected "baz", got "%v".`, val)
 	}
 }
@@ -87,7 +87,7 @@ func TestClearRange(t *testing.T) {
 func TestMissingKey(t *testing.T) {
 	lex := New(CompareStrings)
 
-	if val, err := lex.Get("foo"); err != ErrKeyNotPresent {
+	if val := lex.Get("foo"); val != nil {
 		t.Errorf(`Expected ErrKeyNotPresent, got value "%v".`, val)
 	}
 }
