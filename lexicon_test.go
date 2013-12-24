@@ -1,6 +1,7 @@
 package lexicon
 
 import (
+	"hash/adler32"
 	"testing"
 )
 
@@ -27,6 +28,24 @@ func CompareStrings(a, b interface{}) (result int) {
 
 func TestSetGet(t *testing.T) {
 	lex := New(CompareStrings)
+	lex.Set("foo", "bar")
+
+	if val := lex.Get("foo"); val != "bar" {
+		t.Errorf(`Expected "bar", got "%v".`, val)
+	}
+
+	lex.Set("foo", "baz")
+
+	if val := lex.Get("foo"); val != "baz" {
+		t.Errorf(`Expected "baz", got "%v".`, val)
+	}
+}
+
+func TestHash(t *testing.T) {
+	lex := New(CompareStrings)
+	lex.Hasher = func(i interface{}) int {
+		return int(adler32.Checksum([]byte(i.(string))))
+	}
 	lex.Set("foo", "bar")
 
 	if val := lex.Get("foo"); val != "bar" {

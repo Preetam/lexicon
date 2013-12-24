@@ -18,6 +18,7 @@ type KeyValue struct {
 type Lexicon struct {
 	treap   *gtreap.Treap
 	compare func(a, b interface{}) int
+	Hasher  func(interface{}) int
 }
 
 func (lex *Lexicon) compareKeyValue(a, b interface{}) int {
@@ -34,13 +35,14 @@ func (lex *Lexicon) compareKeyValue(a, b interface{}) int {
 func New(compare func(a, b interface{}) int) *Lexicon {
 	lex := &Lexicon{compare: compare}
 	lex.treap = gtreap.NewTreap(lex.compareKeyValue)
+	lex.Hasher = func(i interface{}) int { return rand.Int() }
 	return lex
 }
 
 // Set sets a key to a value.
 func (lex *Lexicon) Set(key, value interface{}) {
 	kv := KeyValue{Key: key, Value: value}
-	lex.treap = lex.treap.Delete(kv).Upsert(kv, rand.Int())
+	lex.treap = lex.treap.Delete(kv).Upsert(kv, lex.Hasher(key))
 }
 
 // SetMany sets multiple key-value pairs.
