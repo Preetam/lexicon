@@ -47,6 +47,10 @@ func (lex *Lexicon) Set(key, value interface{}) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
 
+	if len(lex.treaps) >= 9 {
+		lex.clean()
+	}
+
 	kv := KeyValue{Key: key, Value: value}
 	lex.treaps[lex.version+1] = lex.treaps[lex.version].Delete(kv).Upsert(kv, lex.Hasher(key))
 	lex.version++
@@ -87,6 +91,9 @@ func (lex *Lexicon) Get(key interface{}, version ...uint64) interface{} {
 
 // Remove deletes a key-value pair.
 func (lex *Lexicon) Remove(key interface{}) {
+	if len(lex.treaps) >= 9 {
+		lex.clean()
+	}
 	lex.treaps[lex.version+1] = lex.treaps[lex.version].Delete(KeyValue{Key: key, Value: 0})
 	lex.version++
 }
@@ -96,6 +103,10 @@ func (lex *Lexicon) Remove(key interface{}) {
 func (lex *Lexicon) ClearRange(start, end interface{}) {
 	lex.mutex.Lock()
 	defer lex.mutex.Unlock()
+
+	if len(lex.treaps) >= 9 {
+		lex.clean()
+	}
 
 	lex.treaps[lex.version].VisitAscend(KeyValue{Key: start, Value: 0}, func(i gtreap.Item) bool {
 		if lex.compare(i.(KeyValue).Key, end) >= 0 {
@@ -133,4 +144,12 @@ func (lex *Lexicon) GetRange(start, end interface{}, version ...uint64) (kv []Ke
 	})
 
 	return
+}
+
+func (lex *Lexicon) clean() {
+	for version, _ := range lex.treaps {
+		if lex.version-version > 5 {
+			delete(lex.treaps, version)
+		}
+	}
 }
