@@ -71,14 +71,10 @@ func TestMissingKey(t *testing.T) {
 	}
 }
 
-func BenchmarkBasicSetRemove(b *testing.B) {
+func BenchmarkBasicSet(b *testing.B) {
 	lex := New()
 
 	for i := 0; i < b.N; i++ {
 		lex.Set(fmt.Sprint(i), "val")
-	}
-
-	for i := 0; i < b.N; i++ {
-		lex.Remove(fmt.Sprint(i))
 	}
 }
