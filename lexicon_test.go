@@ -1,33 +1,12 @@
 package lexicon
 
 import (
-	"hash/adler32"
+	"fmt"
 	"testing"
 )
 
-func CompareStrings(a, b interface{}) (result int) {
-	defer func() {
-		if r := recover(); r != nil {
-			// Log it?
-		}
-	}()
-
-	aStr := a.(string)
-	bStr := b.(string)
-
-	if aStr > bStr {
-		result = 1
-	}
-
-	if aStr < bStr {
-		result = -1
-	}
-
-	return
-}
-
 func TestSetGet(t *testing.T) {
-	lex := New(CompareStrings)
+	lex := New()
 	lex.Set("foo", "bar")
 
 	if val := lex.Get("foo"); val != "bar" {
@@ -42,10 +21,7 @@ func TestSetGet(t *testing.T) {
 }
 
 func TestHash(t *testing.T) {
-	lex := New(CompareStrings)
-	lex.Hasher = func(i interface{}) int {
-		return int(adler32.Checksum([]byte(i.(string))))
-	}
+	lex := New()
 	lex.Set("foo", "bar")
 
 	if val := lex.Get("foo"); val != "bar" {
@@ -60,7 +36,7 @@ func TestHash(t *testing.T) {
 }
 
 func TestGetRange(t *testing.T) {
-	lex := New(CompareStrings)
+	lex := New()
 	lex.Set("foo", "bar")
 	lex.Set("foobar", "baz")
 	lex.Set("bar", "foo")
@@ -72,24 +48,8 @@ func TestGetRange(t *testing.T) {
 	}
 }
 
-func TestSetMany(t *testing.T) {
-	lex := New(CompareStrings)
-	pairs := map[interface{}]interface{}{
-		"foo":    "bar",
-		"foobar": "baz",
-		"bar":    "foo",
-		"a":      "1",
-	}
-
-	lex.SetMany(pairs)
-	kv := lex.GetRange("", "\xff")
-	if len(kv) != 4 {
-		t.Errorf("Expected 4 results, got %d", len(kv))
-	}
-}
-
 func TestClearRange(t *testing.T) {
-	lex := New(CompareStrings)
+	lex := New()
 	lex.Set("foo", "bar")
 	lex.Set("foobar", "baz")
 	lex.Set("bar", "foo")
@@ -104,44 +64,21 @@ func TestClearRange(t *testing.T) {
 }
 
 func TestMissingKey(t *testing.T) {
-	lex := New(CompareStrings)
+	lex := New()
 
-	if val := lex.Get("foo"); val != nil {
+	if val := lex.Get("foo"); val != "" {
 		t.Errorf(`Expected ErrKeyNotPresent, got value "%v".`, val)
 	}
 }
 
-func TestVersioning(t *testing.T) {
-	lex := New(CompareStrings)
-
-	lex.Set("foo", "bar") // version 1
-
-	if val := lex.Get("foo"); val != "bar" {
-		t.Errorf(`Expected "bar", got "%v".`, val)
-	}
-
-	lex.Set("foo", "baz") // version 2
-
-	if val := lex.Get("foo"); val != "baz" {
-		t.Errorf(`Expected "baz", got "%v".`, val)
-	}
-
-	if val := lex.Get("foo", 1); val != "bar" {
-		t.Errorf(`Expected "bar" at version %v, got "%v".`, 1, val)
-	}
-	if val := lex.Get("foo", 2); val != "baz" {
-		t.Errorf(`Expected "baz" at version %v, got "%v".`, 2, val)
-	}
-}
-
 func BenchmarkBasicSetRemove(b *testing.B) {
-	lex := New(CompareStrings)
+	lex := New()
 
 	for i := 0; i < b.N; i++ {
-		lex.Set(i, "val")
+		lex.Set(fmt.Sprint(i), "val")
 	}
 
 	for i := 0; i < b.N; i++ {
-		lex.Remove(i)
+		lex.Remove(fmt.Sprint(i))
 	}
 }
